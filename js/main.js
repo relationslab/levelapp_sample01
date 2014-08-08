@@ -14,11 +14,11 @@ window.onload = function() {
 
     //オブジェクト
     var map = new Array(21);
-    var bear;
+    var cogoo;
     var scoreLabel;
 
     //画像の読み込み
-    game.preload("chara1.png", "map9.png");
+    game.preload("cogoo.png", "map9.png");
 
     //ゲームの前処理完了時に呼ばれる
     game.onload = function() {
@@ -60,30 +60,30 @@ window.onload = function() {
 
         //タッチ開始時の処理
         game.rootScene.ontouchstart = function() {
-            if (bear.jumpAble) {
-                bear.jumpAble = false;
-                bear.jumpPow = 20;
+            if (cogoo.jumpAble) {
+                cogoo.jumpAble = false;
+                cogoo.jumpPow = 20;
             }
         }
 
         //タッチ終了時の処理
         game.rootScene.ontouchend = function() {
-            if (bear.jumpPow > 0) bear.jumpPow = 0;
+            if (cogoo.jumpPow > 0) cogoo.jumpPow = 0;
         }
 
         //クマさんの生成
-        bear = new Sprite(32, 32);
-        bear.image = game.assets["chara1.png"];
-        bear.frame = 5;
-        bear.walk = [0,1,0,2];
-        bear.x = 24;
-        bear.y = 192;
-        bear.jumpPow = -1; //ジャンプ力
-        bear.jumpAble = true; //ジャンプ可
-        game.rootScene.addChild(bear);
+        cogoo = new Sprite(24, 32);
+        cogoo.image = game.assets["cogoo.png"];
+        cogoo.frame = 0;
+        cogoo.walk = [0,1,2,3];
+        cogoo.x = 32;
+        cogoo.y = 192;
+        cogoo.jumpPow = -1; //ジャンプ力
+        cogoo.jumpAble = true; //ジャンプ可
+        game.rootScene.addChild(cogoo);
 
         //クマさんの画面更新のたびに実行する処理
-        bear.onenterframe = function() {
+        cogoo.onenterframe = function() {
             if (this.jumpAble) {
                 this.frame = this.walk[Math.floor(game.frame / 2) % 4] + 5;
             } else {
