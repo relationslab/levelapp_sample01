@@ -1,5 +1,5 @@
 /**
- * enchant.js v0.8.2
+ * enchant.js v0.8.1
  * http://enchantjs.com
  *
  * Copyright Ubiquitous Entertainment Inc.
@@ -314,7 +314,7 @@ enchant.ENV = {
      * Version of enchant.js
      * @type String
      */
-    VERSION: '0.8.2',
+    VERSION: '0.8.1',
     /**
      * Identifier of the current browser.
      * @type String
@@ -440,14 +440,6 @@ enchant.ENV = {
      * @type Boolean
      */
     SOUND_ENABLED_ON_MOBILE_SAFARI: true,
-    /**
-     * Determines if "touch to start" scene is enabled.
-     * It is necessary on Mobile Safari because WebAudio Sound is
-     * muted by browser until play any sound in touch event handler.
-     * If set it to false, you should control this behavior manually.
-     * @type Boolean
-     */
-    USE_TOUCH_TO_START_SCENE: true,
     /**
      * Determines if WebAudioAPI is enabled. (true: use WebAudioAPI instead of Audio element if possible)
      * @type Boolean
@@ -808,13 +800,6 @@ enchant.Event.ACTION_ADDED = "actionadded";
  * @type String
  */
 enchant.Event.ACTION_REMOVED = "actionremoved";
-
-/**
- * An event dispatched when an animation finishes, meaning null element was encountered
- * Issued by: {@link enchant.Sprite}
- * @type String
- */
-enchant.Event.ANIMATION_END = "animationend";
 
 /**
  * @scope enchant.EventTarget.prototype
@@ -1340,17 +1325,16 @@ enchant.EventTarget = enchant.Class.create({
          * @return {enchant.Deferred}
          */
         load: function(src, alias, callback, onerror) {
-            var assetName;
+            var assetName, offset;
             if (typeof arguments[1] === 'string') {
                 assetName = alias;
-                callback = callback || function() {};
-                onerror = onerror || function() {};
+                offset = 1;
             } else {
                 assetName = src;
-                var tempCallback = callback;
-                callback = arguments[1] || function() {};
-                onerror = tempCallback || function() {};
+                offset = 0;
             }
+            callback = arguments[1 + offset] || function() {};
+            onerror = arguments[2 + offset] || function() {};
 
             var ext = enchant.Core.findExt(src);
 
@@ -1416,16 +1400,24 @@ enchant.EventTarget = enchant.Class.create({
 
             if (!this._activated) {
                 this._activated = true;
-                if (enchant.ENV.BROWSER === 'mobilesafari' &&
-                    enchant.ENV.USE_WEBAUDIO &&
-                    enchant.ENV.USE_TOUCH_TO_START_SCENE) {
+                if (enchant.ENV.SOUND_ENABLED_ON_MOBILE_SAFARI && !core._touched &&
+                    (navigator.userAgent.indexOf('iPhone OS') !== -1 ||
+                    navigator.userAgent.indexOf('iPad') !== -1)) {
                     var d = new enchant.Deferred();
-                    var scene = this._createTouchToStartScene();
-                    scene.addEventListener(enchant.Event.TOUCH_START, function waitTouch() {
-                        this.removeEventListener(enchant.Event.TOUCH_START, waitTouch);
-                        var a = new enchant.WebAudioSound();
-                        a.buffer = enchant.WebAudioSound.audioContext.createBuffer(1, 1, 48000);
-                        a.play();
+                    var scene = new enchant.Scene();
+                    scene.backgroundColor = '#000';
+                    var size = Math.round(core.width / 10);
+                    var sprite = new enchant.Sprite(core.width, size);
+                    sprite.y = (core.height - size) / 2;
+                    sprite.image = new enchant.Surface(core.width, size);
+                    sprite.image.context.fillStyle = '#fff';
+                    sprite.image.context.font = (size - 1) + 'px bold Helvetica,Arial,sans-serif';
+                    var width = sprite.image.context.measureText('Touch to Start').width;
+                    sprite.image.context.fillText('Touch to Start', (core.width - width) / 2, size - 1);
+                    scene.addChild(sprite);
+                    document.addEventListener('mousedown', function waitTouch() {
+                        document.removeEventListener('mousedown', waitTouch);
+                        core._touched = true;
                         core.removeScene(scene);
                         core.start(d);
                     }, false);
@@ -1480,23 +1472,6 @@ enchant.EventTarget = enchant.Class.create({
 
             this.pushScene(this.loadingScene);
             return enchant.Deferred.parallel(o);
-        },
-        _createTouchToStartScene: function() {
-            var label = new enchant.Label('Touch to Start'),
-                size = Math.round(core.width / 10),
-                scene = new enchant.Scene();
-
-            label.color = '#fff';
-            label.font = (size - 1) + 'px bold Helvetica,Arial,sans-serif';
-            label.textAlign = 'center';
-            label.width = core.width;
-            label.height = label._boundHeight;
-            label.y = (core.height - label.height) / 2;
-
-            scene.backgroundColor = '#000';
-            scene.addChild(label);
-
-            return scene;
         },
         /**
          * Start application in debug mode.
@@ -1965,8 +1940,8 @@ enchant.BinaryInputManager = enchant.Class.create(enchant.InputManager, {
      * @see enchant.InputManager#unbind
      */
     unbind: function(binaryInputSource) {
-        var name = this._binds[binaryInputSource.identifier];
         enchant.InputManager.prototype.unbind.call(this, binaryInputSource);
+        var name = this._binds[binaryInputSource.identifier];
         delete this.valueStore[name];
     },
     /**
@@ -2226,7 +2201,8 @@ enchant.Node = enchant.Class.create(enchant.EventTarget, {
         var stack = matrix.stack;
         var mat = [];
         var newmat, ox, oy;
-        for (var i = 0, l = tree.length; i < l; i++) {
+        stack.push(tree[0]._matrix);
+        for (var i = 1, l = tree.length; i < l; i++) {
             node = tree[i];
             newmat = [];
             matrix.makeTransformMatrix(node, mat);
@@ -2878,12 +2854,11 @@ enchant.Sprite = enchant.Class.create(enchant.Entity, {
             return this._frame;
         },
         set: function(frame) {
-            if (this._frame === frame || (frame instanceof Array && this._deepCompareToPreviousFrame(frame))) {
+            if (this._frame === frame) {
                 return;
             }
             if (frame instanceof Array) {
                 this._frameSequence = frame.slice();
-                this._originalFrameSequence = frame.slice();
                 this._rotateFrameSequence();
             } else {
                 this._frameSequence = [];
@@ -2891,28 +2866,6 @@ enchant.Sprite = enchant.Class.create(enchant.Entity, {
                 this._computeFramePosition();
             }
         }
-    },
-    /**
-     * If we are setting the same frame Array as animation,
-     * just continue animating.
-     * @private
-     */
-    _deepCompareToPreviousFrame: function(frameArray) {
-        if (frameArray === this._originalFrameSequence) {
-            return true;
-        }
-        if (frameArray == null || this._originalFrameSequence == null) {
-            return false;
-        }
-        if (frameArray.length !== this._originalFrameSequence.length) {
-            return false;
-        }
-        for (var i = 0; i < frameArray.length; ++i) {
-            if (frameArray[i] !== this._originalFrameSequence[i]){
-                return false;
-            }
-        }
-        return true;
     },
     /**
      * 0 <= frame
@@ -2932,7 +2885,6 @@ enchant.Sprite = enchant.Class.create(enchant.Entity, {
             var nextFrame = this._frameSequence.shift();
             if (nextFrame === null) {
                 this._frameSequence = [];
-                this.dispatchEvent(new enchant.Event(enchant.Event.ANIMATION_END));
             } else {
                 this._frame = nextFrame;
                 this._computeFramePosition();
