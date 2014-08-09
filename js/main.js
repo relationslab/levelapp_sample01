@@ -23,8 +23,8 @@ window.onload = function() {
 
     //ゲームの前処理完了時に呼ばれる
     game.onload = function() {
-        game.assets["snd/cogoo_voice0.mp3"].stop();
         game.assets["snd/cogoo_voice0.mp3"].play();
+        game.assets["snd/cogoo_voice0.mp3"].stop();
         
         //マップの生成
         for (var i = 0; i < 21; i++) {
