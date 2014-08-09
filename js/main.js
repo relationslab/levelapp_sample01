@@ -49,7 +49,9 @@ window.onload = function() {
                     floorLen--;
                     map[21 - 1].y = map[22 - 2].y;
                 } else if (map[21 - 2].y == 320) {
-                    floorLen = 1 + rand(4);
+                	var len_base = Math.floor((3000-scoreLabel.score)/500);
+                	if( len_base<1 ) len_base = 1;
+                    floorLen = len_base + rand(3);
                     map[21 - 1].y = 320 - 16 * (5 + rand(8));
                 } else {
                     floorLen = 1 + rand(5);
