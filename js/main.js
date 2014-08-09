@@ -19,12 +19,12 @@ window.onload = function() {
 
     //画像の読み込み
     game.preload("img/cogoo.png", "img/map9.png");
-    game.preload("snd/cogoo_voice0.mp3");
+    game.preload("snd/cogoo_voice0.wav");
 
     //ゲームの前処理完了時に呼ばれる
     game.onload = function() {
-        game.assets["snd/cogoo_voice0.mp3"].play();
-        game.assets["snd/cogoo_voice0.mp3"].stop();
+        game.assets["snd/cogoo_voice0.wav"].play();
+        game.assets["snd/cogoo_voice0.wav"].stop();
         
         //マップの生成
         for (var i = 0; i < 21; i++) {
@@ -69,8 +69,8 @@ window.onload = function() {
             if (cogoo.jumpAble) {
                 cogoo.jumpAble = false;
                 cogoo.jumpPow = 20;
-                game.assets["snd/cogoo_voice0.mp3"].stop();
-                game.assets["snd/cogoo_voice0.mp3"].play();
+                game.assets["snd/cogoo_voice0.wav"].stop();
+                game.assets["snd/cogoo_voice0.wav"].play();
             }
         }
 
