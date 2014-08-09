@@ -18,14 +18,15 @@ window.onload = function() {
     var scoreLabel;
 
     //画像の読み込み
-    game.preload("cogoo.png", "map9.png");
+    game.preload("img/cogoo.png", "img/map9.png");
+    game.preload("snd/cogoo_voice0.mp3");
 
     //ゲームの前処理完了時に呼ばれる
     game.onload = function() {
         //マップの生成
         for (var i = 0; i < 21; i++) {
             map[i] = new Sprite(16, 224);
-            map[i].image = game.assets["map9.png"];
+            map[i].image = game.assets["img/map9.png"];
             map[i].x = i * 16;
             map[i].y = 224;
             game.rootScene.addChild(map[i]);
@@ -65,6 +66,8 @@ window.onload = function() {
             if (cogoo.jumpAble) {
                 cogoo.jumpAble = false;
                 cogoo.jumpPow = 20;
+                game.assets["snd/cogoo_voice0.mp3"].stop();
+                game.assets["snd/cogoo_voice0.mp3"].play();
             }
         }
 
@@ -75,7 +78,7 @@ window.onload = function() {
 
         //クマさんの生成
         cogoo = new Sprite(24, 32);
-        cogoo.image = game.assets["cogoo.png"];
+        cogoo.image = game.assets["img/cogoo.png"];
         cogoo.frame = 0;
         cogoo.walk = [0,1,2,3];
         cogoo.x = 32;
