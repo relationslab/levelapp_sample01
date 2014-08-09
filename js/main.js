@@ -77,7 +77,7 @@ window.onload = function() {
         cogoo.frame = 0;
         cogoo.walk = [0,1,2,3];
         cogoo.x = 32;
-        cogoo.y = 192;
+        cogoo.y = 196;
         cogoo.jumpPow = -1; //ジャンプ力
         cogoo.jumpAble = true; //ジャンプ可
         game.rootScene.addChild(cogoo);
@@ -105,8 +105,8 @@ window.onload = function() {
                 this.y -= this.jumpPow;
                 this.jumpPow--;
                 this.jumpAble = false;
-                if (map[3].y != 320 && this.y > map[3].y - 32) {
-                    this.y = map[3].y - 32;
+                if (map[3].y != 320 && this.y > map[3].y - 28) {
+                    this.y = map[3].y - 28;
                     this.jumpAble = true;
                     this.jumpPow = 0;
                 }
