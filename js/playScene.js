@@ -20,7 +20,7 @@ var PlayScene = enchant.Class.create(enchant.Scene, {
     this.field.y = 0;
     this.addChild(this.field);
 
-    //タッチアクションの割り当て
+    //タッチアクション処理
     this.initTouchAction();
   },
 
@@ -99,6 +99,9 @@ var Field = enchant.Class.create(enchant.Group, {
       //ジャンプ中なのでジャンプ不能状態にし、初期ジャンプ力を設定
       this.cogoo.jumpAble = false;
       this.cogoo.jumpPow = 20;
+      
+	  this.cogoo.voice.stop();
+	  this.cogoo.voice.play();
     }
   },
 
@@ -148,7 +151,7 @@ var Field = enchant.Class.create(enchant.Group, {
         //最低長さを2とする（randが最低1を返すため）
       	if( len_base<1 ) len_base = 1;
         this.floorLen = len_base + rand(3);
-        //陸地の高さをランダムに計算（6〜14）
+        //陸地の高さをランダムに計算（6?14）
         this.map[21 - 1].y = GAME_HEIGHT - 16 * (5 + rand(8));
       } else {
         //（３）床長さカウンタがゼロ && 前回は陸地
@@ -207,6 +210,11 @@ var Koguma = enchant.Class.create(enchant.Sprite, {
     //スプライト画像を設定、初期フレームは0
     this.image = this.core.assets['./img/cogoo.png'];
     this.frame = 0;
+    
+    //声
+    this.voice = this.core.assets['./snd/cogoo_voice0.mp3'];
+    this.voice.play();
+    this.voice.stop();
 
     //フレームごとに呼ばれる関数を設定（初期状態で秒間30回呼ばれる）
     this.addEventListener(Event.ENTER_FRAME, function() {
