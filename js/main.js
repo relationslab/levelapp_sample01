@@ -26,6 +26,7 @@ window.onload = function() {
       , './img/end.png'
       , './img/cogoo.png'
       , './img/map9.png'
+       , './snd/cogoo_voice.mp3'
     );
 
     //ゲーム開始
